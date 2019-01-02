@@ -208,6 +208,7 @@ create table jkFile(
             }
         }
         private List<IniJkNames> getJkFiles() {
+            Console.WriteLine($"getJkFiles開始");
             var result = new List<IniJkNames>();
             var subDirectoryPaths = Directory.GetDirectories(this.ディレクトリのパス, "*", SearchOption.TopDirectoryOnly);
             var jkNamesRegex = new Regex(@"^jk(\d+)$", RegexOptions.IgnoreCase);
@@ -222,7 +223,7 @@ create table jkFile(
                 var allFiles = Directory.GetFiles(fullPath, "*.txt", SearchOption.TopDirectoryOnly);
                 // jk10 のdbの情報を全部持ってくる
                 var sqliteDatas = new List<dynamic>();
-
+                Console.WriteLine($" jk{jkIdInPath} を取得開始。ファイル数は {allFiles.Length}個");
                 const string sqliteのファイル名 = "jkDatabase.db";
                 string sqliteの接続文字列 = (new SQLiteConnectionStringBuilder { DataSource = sqliteのファイル名 }).ToString();
                 using (var cn = new SQLiteConnection(sqliteの接続文字列)) {
@@ -247,6 +248,15 @@ create table jkFile(
                         }
                     }
                 }
+                Console.WriteLine($"  DBから {sqliteDatas.Count} 件のデータを取得");
+                var sqliteから受信したデータ = sqliteDatas.Select(a => {
+                    return new {
+                        fileNumber = (long)a.fileNumber,
+                        fileSize = (long)a.fileSize,
+                        vopsStartDate = (string)a.vopsStartDate,
+                        vopsEndDate = (string)a.vopsEndDate,
+                    };
+                });
                 foreach (var file in allFiles) {
                     var mc = jkFileNamesRegex.Match(Path.GetFileName(file));
                     if (!mc.Success) {
@@ -254,23 +264,14 @@ create table jkFile(
                     }
                     var fileTimestamp = int.Parse(mc.Groups[1].ToString());
                     var fileSize = new FileInfo(file).Length;
-                    var sqliteから受信したデータ = sqliteDatas.Select(a => {
-                        return new {
-                            fileNumber = (long)a.fileNumber,
-                            fileSize = (long)a.fileSize,
-                            vopsStartDate = (string)a.vopsStartDate,
-                            vopsEndDate = (string)a.vopsEndDate,
-                        };
-                    }).Where(a => {
-                        return a.fileNumber == fileTimestamp && a.fileSize == fileSize;
-                    }).FirstOrDefault();
-                    if (sqliteから受信したデータ != null) {
+                    var sqliteから受信したデータf = sqliteから受信したデータ.FirstOrDefault();
+                    if (sqliteから受信したデータf != null) {
                         this.すべてのファイルの一覧.Add(new JkFileData {
                             jk番号 = jkIdInPath,
                             ファイル番号 = fileTimestamp,
                             ファイルサイズ = fileSize,
-                            最初のコメントの日時 = DateTime.Parse(sqliteから受信したデータ.vopsStartDate),
-                            最後のコメントの日時 = DateTime.Parse(sqliteから受信したデータ.vopsEndDate),
+                            最初のコメントの日時 = DateTime.Parse(sqliteから受信したデータf.vopsStartDate),
+                            最後のコメントの日時 = DateTime.Parse(sqliteから受信したデータf.vopsEndDate),
                             ファイルのフルパス = file
                         });
                     } else {
@@ -283,6 +284,7 @@ create table jkFile(
                     }
                 }
             }
+            Console.WriteLine($"getJkFiles終了");
             return result;
         }
         private void getFileDetails() {
