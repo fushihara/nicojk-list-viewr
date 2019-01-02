@@ -51,48 +51,6 @@ namespace WpfApp1 {
             this.model.init(this.Dispatcher);
         }
     }
-    public class JkItem : INotifyPropertyChanged {
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "") {
-            if (PropertyChanged != null) {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-        public string ファイルパス { get; set; }
-        public long ファイルサイズ { get; set; }
-        public string 開始時刻_文字列 { get; set; }
-        public string test_番号 { get; set; }
-        public string test_ステータス {
-            get {
-                return this._test_ステータス;
-            }
-            set {
-                if (value == this._test_ステータス) {
-                    return;
-                }
-                this._test_ステータス = value;
-                this.NotifyPropertyChanged();
-            }
-        }
-        private string _test_ステータス = "";
-    }
-    class JkIniData {
-        public string ディレクトリパス { get; set; } = "";
-        public List<IniJkNames> jkの名前定義一覧 { get; set; } = new List<IniJkNames>();
-    }
-    class IniJkNames {
-        public string 局名 { get; set; } = "";
-        public int jk番号 { get; set; } = 0;
-        public string 局を選択するコンボボックスで表示するテキスト {
-            get {
-                if (this.局名 == "") {
-                    return $"jk{jk番号}";
-                } else {
-                    return $"{局名}(jk{jk番号})";
-                }
-            }
-        }
-    }
     class MainWindowModel {
         public delegate void DataReloadHander(List<IniJkNames> jkDatas, List<JkFileData> loadData);
         public event DataReloadHander onDataReload;
