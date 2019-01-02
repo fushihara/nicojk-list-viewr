@@ -31,8 +31,28 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="開始時刻" Binding="{Binding Path=開始時刻_文字列}" />
-                    <DataGridTextColumn Header="終了時刻" Binding="{Binding Path=終了時刻_文字列}" />
+                    <DataGridTextColumn Header="開始時刻" Binding="{Binding Path=開始時刻,TargetNullValue='データなし',ConverterCulture=ja-JP,StringFormat={}{0:yyyy年MM月dd日(ddd)HH:mm:ss}}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding 開始時刻}" Value="{x:Null}">
+                                        <Setter Property="Foreground" Value="Silver"></Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="終了時刻" Binding="{Binding Path=終了時刻,TargetNullValue='データなし',ConverterCulture=ja-JP,StringFormat={}{0:yyyy年MM月dd日(ddd)HH:mm:ss}}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding 終了時刻}" Value="{x:Null}">
+                                        <Setter Property="Foreground" Value="Silver"></Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>

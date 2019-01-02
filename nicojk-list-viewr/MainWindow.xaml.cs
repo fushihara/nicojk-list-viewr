@@ -210,8 +210,8 @@ create table jkFile(
                     return new {
                         fileNumber = (long)a.fileNumber,
                         fileSize = (long)a.fileSize,
-                        vopsStartDate = (string)a.vopsStartDate,
-                        vopsEndDate = (string)a.vopsEndDate,
+                        vopsStartDate = DateTime.Parse((string)a.vopsStartDate),
+                        vopsEndDate = DateTime.Parse((string)a.vopsEndDate),
                     };
                 });
                 foreach (var file in allFiles) {
@@ -229,8 +229,8 @@ create table jkFile(
                             jk番号 = jkIdInPath,
                             ファイル番号 = fileTimestamp,
                             ファイルサイズ = fileSize,
-                            最初のコメントの日時 = DateTime.Parse(sqliteから受信したデータf.vopsStartDate),
-                            最後のコメントの日時 = DateTime.Parse(sqliteから受信したデータf.vopsEndDate),
+                            最初のコメントの日時 = sqliteから受信したデータf.vopsStartDate,
+                            最後のコメントの日時 = sqliteから受信したデータf.vopsEndDate,
                             ファイルのフルパス = file
                         });
                     } else {
@@ -321,8 +321,8 @@ create table jkFile(
             private long _ファイル番号 = 0;
             private string _局名 = "";
             private long _ファイルサイズ = 0;
-            private string _開始時刻_文字列 = "";
-            private string _終了時刻_文字列 = "";
+            private DateTime? _開始時刻 = null;
+            private DateTime? _終了時刻 = null;
 
             public long ファイル番号 {
                 get { return this._ファイル番号; }
@@ -360,23 +360,23 @@ create table jkFile(
                     this.NotifyPropertyChanged("ファイルサイズkb");
                 }
             }
-            public string 開始時刻_文字列 {
-                get { return this._開始時刻_文字列; }
+            public DateTime? 開始時刻 {
+                get { return this._開始時刻; }
                 set {
-                    if (value == this._開始時刻_文字列) {
+                    if (value == this._開始時刻) {
                         return;
                     }
-                    this._開始時刻_文字列 = value;
+                    this._開始時刻 = value;
                     this.NotifyPropertyChanged();
                 }
             }
-            public string 終了時刻_文字列 {
-                get { return this._終了時刻_文字列; }
+            public DateTime? 終了時刻 {
+                get { return this._終了時刻; }
                 set {
-                    if (value == this._終了時刻_文字列) {
+                    if (value == this._終了時刻) {
                         return;
                     }
-                    this._終了時刻_文字列 = value;
+                    this._終了時刻 = value;
                     this.NotifyPropertyChanged();
                 }
             }
@@ -395,8 +395,8 @@ create table jkFile(
                     ファイル番号 = data.ファイル番号,
                     局名 = data.jk番号.ToString(),
                     ファイルサイズ = data.ファイルサイズ,
-                    開始時刻_文字列 = data.最初のコメントの日時 == null ? "なし" : data.最初のコメントの日時.Value.ToString("yyyy-MM-dd HH:mm:ss"),
-                    終了時刻_文字列 = data.最後のコメントの日時 == null ? "なし" : data.最後のコメントの日時.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                    開始時刻 = data.最初のコメントの日時,
+                    終了時刻 = data.最後のコメントの日時
                 });
             }
         }
@@ -408,8 +408,8 @@ create table jkFile(
             this.statusProgressbar.IsIndeterminate = false;
             foreach (var data in this.gridViewObservableCollection) {
                 if (data.局名 == jkId.ToString() && data.ファイル番号 == fileDate) {
-                    data.開始時刻_文字列 = startDate.ToString("yyyy-MM-dd HH:mm:ss");
-                    data.終了時刻_文字列 = endDate.ToString("yyyy-MM-dd HH:mm:ss");
+                    data.開始時刻 = startDate;
+                    data.終了時刻 = endDate;
                 }
             }
         }
