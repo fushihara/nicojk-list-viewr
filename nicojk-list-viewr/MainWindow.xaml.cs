@@ -260,7 +260,7 @@ create table jkFile(
                 DateTime? startDate = null;
                 DateTime? endDate = null;
                 using (System.IO.StreamReader sr = new System.IO.StreamReader(data.ファイルのフルパス, Encoding.UTF8)) {
-                    var dateRegEx = new Regex(@"date=""(\d+)""");
+                    var dateRegEx = new Regex(@"date=""(\d{10})""");
                     while (sr.Peek() > -1) {
                         var line = sr.ReadLine().Trim();
                         var match = dateRegEx.Match(line);
