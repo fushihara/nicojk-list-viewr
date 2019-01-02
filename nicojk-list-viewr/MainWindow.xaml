@@ -17,7 +17,7 @@
                     <TextBlock Name="statusMessage" Text="ファイル100/2000 を読み込み中…"></TextBlock>
                 </StatusBarItem>
                 <StatusBarItem HorizontalAlignment="Right">
-                    <ProgressBar Name="statusProgressbar" IsIndeterminate="True" Width="150" Height="15"></ProgressBar>
+                    <ProgressBar Name="statusProgressbar" IsIndeterminate="True" Width="200" Height="15"></ProgressBar>
                 </StatusBarItem>
             </StatusBar>
             <DataGrid Name="jkList" ItemsSource="{Binding}" VirtualizingStackPanel.VirtualizationMode="Recycling" VirtualizingStackPanel.IsVirtualizing="True" AutoGenerateColumns="False">
