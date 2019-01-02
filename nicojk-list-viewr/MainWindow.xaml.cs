@@ -316,6 +316,7 @@ create table jkFile(
     class MainWindowView {
         public System.Windows.Controls.TextBlock statusMessage;
         public System.Windows.Controls.ProgressBar statusProgressbar;
+        private Dictionary<int, MainWindowModel.IniJkNames> jkNameList = new Dictionary<int, MainWindowModel.IniJkNames>();
         // このobservableCollectionにはgetterとsetter必須。無いと動かない
         public ObservableCollection<JkItem> gridViewObservableCollection { get; set; } = new ObservableCollection<JkItem>();
         public class JkItem : INotifyPropertyChanged {
@@ -326,6 +327,7 @@ create table jkFile(
                 }
             }
             private long _ファイル番号 = 0;
+            private int _jk番号 = 0;
             private string _局名 = "";
             private long _ファイルサイズ = 0;
             private DateTime? _開始時刻 = null;
@@ -355,6 +357,16 @@ create table jkFile(
                         return;
                     }
                     this._ファイル番号 = value;
+                    this.NotifyPropertyChanged();
+                }
+            }
+            public int jk番号 {
+                get { return this._jk番号; }
+                set {
+                    if (value == this._jk番号) {
+                        return;
+                    }
+                    this._jk番号 = value;
                     this.NotifyPropertyChanged();
                 }
             }
@@ -405,8 +417,9 @@ create table jkFile(
                 }
             }
         }
-        public void setChannelList(List<MainWindowModel.IniJkNames> a) {
+        public void setChannelList(IEnumerable<MainWindowModel.IniJkNames> a) {
             // 上のドロップダウンをセットする
+            this.jkNameList = a.ToDictionary(data => { return data.jk番号; });
         }
         public int getChannelJkId() {
             return 0;
@@ -415,9 +428,14 @@ create table jkFile(
             // 下のgridViewを全部更新する
             this.gridViewObservableCollection.Clear();
             foreach (var data in datas) {
+                var 局名 = $"jk{data.jk番号}";
+                if (this.jkNameList.ContainsKey(data.jk番号)) {
+                    局名 = this.jkNameList[data.jk番号].局名;
+                }
                 this.gridViewObservableCollection.Add(new JkItem {
                     ファイル番号 = data.ファイル番号,
-                    局名 = data.jk番号.ToString(),
+                    局名 = 局名,
+                    jk番号 = data.jk番号,
                     ファイルサイズ = data.ファイルサイズ,
                     開始時刻 = data.最初のコメントの日時,
                     終了時刻 = data.最後のコメントの日時
@@ -431,7 +449,7 @@ create table jkFile(
             this.statusProgressbar.Value = 処理済みの個数;
             this.statusProgressbar.IsIndeterminate = false;
             foreach (var data in this.gridViewObservableCollection) {
-                if (data.局名 == jkId.ToString() && data.ファイル番号 == fileDate) {
+                if (data.jk番号 == jkId && data.ファイル番号 == fileDate) {
                     data.開始時刻 = startDate;
                     data.終了時刻 = endDate;
                 }
