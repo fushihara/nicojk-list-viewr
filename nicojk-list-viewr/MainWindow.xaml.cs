@@ -330,7 +330,24 @@ create table jkFile(
             private long _ファイルサイズ = 0;
             private DateTime? _開始時刻 = null;
             private DateTime? _終了時刻 = null;
-
+            public DateTime ファイルの日時 {
+                get {
+                    return DateTimeOffset.FromUnixTimeSeconds(ファイル番号).LocalDateTime;
+                }
+            }
+            public double? 開始から終了までの分 {
+                get {
+                    var 開始 = this.開始時刻;
+                    var 終了 = this.終了時刻;
+                    if (開始 == null) {
+                        return null;
+                    }
+                    if (終了 == null) {
+                        return null;
+                    }
+                    return (終了.Value - 開始.Value).TotalMinutes;
+                }
+            }
             public long ファイル番号 {
                 get { return this._ファイル番号; }
                 set {
