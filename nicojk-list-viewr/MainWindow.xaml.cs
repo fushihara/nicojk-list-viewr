@@ -222,7 +222,9 @@ create table jkFile(
                     }
                     var fileTimestamp = int.Parse(mc.Groups[1].ToString());
                     var fileSize = new FileInfo(file).Length;
-                    var sqliteから受信したデータf = sqliteから受信したデータ.FirstOrDefault();
+                    var sqliteから受信したデータf = sqliteから受信したデータ.Where(data => {
+                        return data.fileNumber == fileTimestamp && data.fileSize == fileSize;
+                    }).FirstOrDefault();
                     if (sqliteから受信したデータf != null) {
                         this.すべてのファイルの一覧.Add(new JkFileData {
                             jk番号 = jkIdInPath,
