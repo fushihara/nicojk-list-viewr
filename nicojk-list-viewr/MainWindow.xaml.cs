@@ -26,7 +26,7 @@ namespace WpfApp1 {
         public MainWindow() {
             InitializeComponent();
             //this.stationSelection.DataContext = this.局選択のobservable;
-            this.jkList.DataContext = this.view.gridViewObservableCollection;
+            this.DataContext = this.view;
             this.view.statusProgressbar = this.statusProgressbar;
             this.view.statusMessage = this.statusMessage;
         }
@@ -313,7 +313,8 @@ create table jkFile(
     class MainWindowView {
         public System.Windows.Controls.TextBlock statusMessage;
         public System.Windows.Controls.ProgressBar statusProgressbar;
-        public ObservableCollection<JkItem> gridViewObservableCollection = new ObservableCollection<JkItem>();
+        // このobservableCollectionにはgetterとsetter必須。無いと動かない
+        public ObservableCollection<JkItem> gridViewObservableCollection { get; set; } = new ObservableCollection<JkItem>();
         public class JkItem : INotifyPropertyChanged {
             public event PropertyChangedEventHandler PropertyChanged;
             private void NotifyPropertyChanged([CallerMemberName] String propertyName = "") {

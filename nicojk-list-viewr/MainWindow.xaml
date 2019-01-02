@@ -20,7 +20,7 @@
                     <ProgressBar Name="statusProgressbar" IsIndeterminate="True" Width="200" Height="15"></ProgressBar>
                 </StatusBarItem>
             </StatusBar>
-            <DataGrid Name="jkList" ItemsSource="{Binding}" VirtualizingStackPanel.VirtualizationMode="Recycling" VirtualizingStackPanel.IsVirtualizing="True" AutoGenerateColumns="False">
+            <DataGrid Name="jkList" ItemsSource="{Binding Path=gridViewObservableCollection}" VirtualizingStackPanel.VirtualizationMode="Recycling" VirtualizingStackPanel.IsVirtualizing="True" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ファイル番号" Binding="{Binding Path=ファイル番号}" />
                     <DataGridTextColumn Header="局名" Binding="{Binding Path=局名}" />
