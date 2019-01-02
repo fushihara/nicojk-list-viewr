@@ -214,16 +214,23 @@ create table jkFile(
                         vopsEndDate = DateTime.Parse((string)a.vopsEndDate),
                     };
                 });
+                var sqliteから受信したデータd = sqliteから受信したデータ.ToDictionary(data => {
+                    return data.fileNumber + "-" + data.fileSize;
+                });
                 foreach (var file in allFiles) {
                     var mc = jkFileNamesRegex.Match(Path.GetFileName(file));
                     if (!mc.Success) {
                         continue;
-                    }
+                    };
                     var fileTimestamp = int.Parse(mc.Groups[1].ToString());
                     var fileSize = new FileInfo(file).Length;
+                    var sqliteから受信したデータf = sqliteから受信したデータd.ContainsKey(fileTimestamp + "-" + fileSize) ? sqliteから受信したデータd[fileTimestamp + "-" + fileSize] : null;
+                    /*
+                     * ↓なぜかめちゃくちゃ遅い
                     var sqliteから受信したデータf = sqliteから受信したデータ.Where(data => {
-                        return data.fileNumber == fileTimestamp && data.fileSize == fileSize;
+                        return data.fileSize == fileSize && data.fileNumber == fileTimestamp;
                     }).FirstOrDefault();
+                    */
                     if (sqliteから受信したデータf != null) {
                         this.すべてのファイルの一覧.Add(new JkFileData {
                             jk番号 = jkIdInPath,
