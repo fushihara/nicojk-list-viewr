@@ -22,7 +22,6 @@ namespace WpfApp1 {
     public partial class MainWindow : Window {
         private MainWindowModel model = new MainWindowModel();
         private MainWindowView view = new MainWindowView();
-        private MainWindowControl control = new MainWindowControl();
         public MainWindow() {
             InitializeComponent();
             //this.stationSelection.DataContext = this.局選択のobservable;
@@ -306,9 +305,6 @@ create table jkFile(
                 }
             }
         }
-    }
-    class MainWindowControl {
-
     }
     class MainWindowView {
         public System.Windows.Controls.TextBlock statusMessage;
