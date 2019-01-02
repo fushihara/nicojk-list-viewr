@@ -404,6 +404,7 @@ create table jkFile(
                     }
                     this._開始時刻 = value;
                     this.NotifyPropertyChanged();
+                    this.NotifyPropertyChanged("開始から終了までの分");
                 }
             }
             public DateTime? 終了時刻 {
@@ -414,6 +415,7 @@ create table jkFile(
                     }
                     this._終了時刻 = value;
                     this.NotifyPropertyChanged();
+                    this.NotifyPropertyChanged("開始から終了までの分");
                 }
             }
         }
