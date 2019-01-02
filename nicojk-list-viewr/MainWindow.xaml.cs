@@ -344,6 +344,11 @@ create table jkFile(
                     this.NotifyPropertyChanged();
                 }
             }
+            public double ファイルサイズkb {
+                get {
+                    return this.ファイルサイズ / 1024.0;
+                }
+            }
             public long ファイルサイズ {
                 get { return this._ファイルサイズ; }
                 set {
@@ -352,6 +357,7 @@ create table jkFile(
                     }
                     this._ファイルサイズ = value;
                     this.NotifyPropertyChanged();
+                    this.NotifyPropertyChanged("ファイルサイズkb");
                 }
             }
             public string 開始時刻_文字列 {

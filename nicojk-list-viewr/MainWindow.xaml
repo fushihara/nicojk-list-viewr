@@ -24,7 +24,13 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ファイル番号" Binding="{Binding Path=ファイル番号}" />
                     <DataGridTextColumn Header="局名" Binding="{Binding Path=局名}" />
-                    <DataGridTextColumn Header="ファイルサイズ" Binding="{Binding Path=ファイルサイズ}" />
+                    <DataGridTextColumn Header="ファイルサイズ"  Binding="{Binding Path=ファイルサイズkb,StringFormat={}{0:0.000} kbyte}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="{x:Type TextBlock}" >
+                                <Setter Property="TextAlignment" Value="Right" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
                     <DataGridTextColumn Header="開始時刻" Binding="{Binding Path=開始時刻_文字列}" />
                     <DataGridTextColumn Header="終了時刻" Binding="{Binding Path=終了時刻_文字列}" />
                 </DataGrid.Columns>
