@@ -20,7 +20,7 @@
                     <ProgressBar Name="statusProgressbar" IsIndeterminate="True" Width="200" Height="15"></ProgressBar>
                 </StatusBarItem>
             </StatusBar>
-            <DataGrid Name="jkList" IsReadOnly="True" ItemsSource="{Binding Path=gridViewObservableCollection}" VirtualizingStackPanel.VirtualizationMode="Recycling" VirtualizingStackPanel.IsVirtualizing="True" AutoGenerateColumns="False">
+            <DataGrid Name="jkList" IsReadOnly="True" SelectionMode="Single" ItemsSource="{Binding Path=gridViewObservableCollection}" VirtualizingStackPanel.VirtualizationMode="Recycling" VirtualizingStackPanel.IsVirtualizing="True" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ファイル番号" Binding="{Binding Path=ファイル番号}" />
                     <DataGridTextColumn Header="ファイル時刻" Binding="{Binding Path=ファイルの日時,ConverterCulture=ja-JP,StringFormat={}{0:yyyy年MM月dd日(ddd)HH:mm:ss}}"/>
