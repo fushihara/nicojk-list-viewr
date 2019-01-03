@@ -29,6 +29,7 @@ namespace WpfApp1 {
             this.DataContext = this.view;
             this.view.statusProgressbar = this.statusProgressbar;
             this.view.statusMessage = this.statusMessage;
+            this.view.displayCountMessage = this.displayCountMessage;
             this.stationSelection.SelectionChanged += (e, sender) => {
                 var e2 = e as System.Windows.Controls.ComboBox;
                 var s2 = sender as System.Windows.Controls.SelectionChangedEventArgs;
@@ -384,6 +385,7 @@ create table jkFile(
     }
     class MainWindowView {
         public System.Windows.Controls.TextBlock statusMessage;
+        public System.Windows.Controls.TextBlock displayCountMessage;
         public System.Windows.Controls.ProgressBar statusProgressbar;
         private Dictionary<int, MainWindowModel.IniJkNames> jkNameList = new Dictionary<int, MainWindowModel.IniJkNames>();
         // このobservableCollectionにはgetterとsetter必須。無いと動かない
@@ -505,7 +507,7 @@ create table jkFile(
                     var fileSizeStr = "";
                     if (this._ファイル個数 != 0) {
                         var sizeMb = this._ファイル合計容量 / 1024.0 / 1024.0;
-                        fileSizeStr = $" {this._ファイル個数,4} files. {sizeMb,8:0.0} mbyte";
+                        fileSizeStr = $" {this._ファイル個数,5} files. {sizeMb,8:0.0} mbyte";
                     }
                     var stationName = "";
                     if (this._局名 != "") {
@@ -582,12 +584,22 @@ create table jkFile(
             });
             this.gridViewViewSource.Source = this.gridViewObservableCollection;
             this.gridViewViewSource.Filter += GridViewViewSource_Filter;
+            this.gridViewViewSource.View.CurrentChanged += (e, sender) => {
+                if (this.filterStationJkNo == 0) {
+                    this.displayCountMessage.Text = $"全{this.gridViewObservableCollection.Count:N0}件表示中(絞り込みなし)";
+                } else {
+                    var count = 0;
+                    foreach (var a in this.gridViewViewSource.View) {
+                        count += 1;
+                    }
+                    this.displayCountMessage.Text = $"{count:N0}件表示中 / 全部で{this.gridViewObservableCollection.Count:N0}件";
+                }
+            };
         }
         public void refreshStationSelection(int stationJkNo) {
             this.filterStationJkNo = stationJkNo;
             this.gridViewViewSource.View.Refresh();
         }
-
         private void GridViewViewSource_Filter(object sender, FilterEventArgs e) {
             //throw new NotImplementedException();
             if (e.Item == null) {
@@ -639,6 +651,7 @@ create table jkFile(
                     終了時刻 = data.最後のコメントの日時
                 });
             }
+            this.gridViewViewSource.View.Refresh();
         }
         public void updateOneData(int 処理対象の合計個数, int 処理済みの個数, int jkId, long fileDate, DateTime startDate, DateTime endDate) {
             // 下のgridViewから一つ更新する

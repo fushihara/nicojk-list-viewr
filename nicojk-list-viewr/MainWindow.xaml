@@ -16,6 +16,11 @@
                 <StatusBarItem>
                     <TextBlock Name="statusMessage" Text="ファイル100/2000 を読み込み中…"></TextBlock>
                 </StatusBarItem>
+                <Separator/>
+                <StatusBarItem>
+                    <TextBlock Name="displayCountMessage" Text="全10000件表示中(絞り込みなし)"></TextBlock>
+                </StatusBarItem>
+                <Separator/>
                 <StatusBarItem HorizontalAlignment="Right">
                     <ProgressBar Name="statusProgressbar" IsIndeterminate="True" Width="200" Height="15"></ProgressBar>
                 </StatusBarItem>
