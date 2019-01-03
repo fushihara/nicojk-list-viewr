@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Threading;
 using Path = System.IO.Path;
 
@@ -28,21 +29,20 @@ namespace WpfApp1 {
             this.DataContext = this.view;
             this.view.statusProgressbar = this.statusProgressbar;
             this.view.statusMessage = this.statusMessage;
+            this.stationSelection.SelectionChanged += (e, sender) => {
+                var e2 = e as System.Windows.Controls.ComboBox;
+                var s2 = sender as System.Windows.Controls.SelectionChangedEventArgs;
+                if (s2.AddedItems.Count == 0) {
+                    return;
+                }
+                var addItem = s2.AddedItems[0] as MainWindowView.StationList;
+                this.view.refreshStationSelection(addItem.jkNo);
+            };
         }
         private void Window_Loaded(object sender, RoutedEventArgs e) {
             this.model.onDataReload += (jkDatas, loadDatas) => {
                 this.view.setChannelList(jkDatas);
-                var nowChannelJkId = this.view.getChannelJkId();
-                var a = loadDatas.Where(loadData => {
-                    if (nowChannelJkId == 0) {
-                        return true;
-                    } else if (nowChannelJkId == loadData.jk番号) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                });
-                this.view.setJkListData(a);
+                this.view.setJkListData(loadDatas);
             };
             this.model.onOneDataUpdate += (処理相性の合計個数, 処理済みの個数, jkId, fileDate, startDate, endDate) => {
                 this.Dispatcher.Invoke(new Action<int, int, int, long, DateTime, DateTime>(this.view.updateOneData), 処理相性の合計個数, 処理済みの個数, jkId, fileDate, startDate, endDate);
@@ -63,6 +63,8 @@ namespace WpfApp1 {
         public class IniJkNames {
             public string 局名 { get; set; } = "";
             public int jk番号 { get; set; } = 0;
+            public long ファイル数 { get; set; } = 0;
+            public long ファイル合計容量 { get; set; } = 0;
         }
         public class JkFileData {
             public int jk番号 { get; set; } = 0;
@@ -164,12 +166,12 @@ create table jkFile(
                 //this.sqliteConnection = cn;
             }
         }
-        private List<IniJkNames> getJkFiles() {
+        private void getJkFiles() {
             Console.WriteLine($"getJkFiles開始");
-            var result = new List<IniJkNames>();
             var subDirectoryPaths = Directory.GetDirectories(this.ディレクトリのパス, "*", SearchOption.TopDirectoryOnly);
             var jkNamesRegex = new Regex(@"^jk(\d+)$", RegexOptions.IgnoreCase);
             var jkFileNamesRegex = new Regex(@"^(\d+)\.txt$", RegexOptions.IgnoreCase);
+            var 局名定義一覧 = this.jkの名前定義一覧.ToDictionary(data => { return data.jk番号; });
             foreach (var fullPath in subDirectoryPaths) {
                 var dirName = Path.GetFileName(fullPath);
                 var m = jkNamesRegex.Match(dirName);
@@ -231,6 +233,10 @@ create table jkFile(
                         return data.fileSize == fileSize && data.fileNumber == fileTimestamp;
                     }).FirstOrDefault();
                     */
+                    if (局名定義一覧.ContainsKey(jkIdInPath)) {
+                        局名定義一覧[jkIdInPath].ファイル数 += 1;
+                        局名定義一覧[jkIdInPath].ファイル合計容量 += fileSize;
+                    }
                     if (sqliteから受信したデータf != null) {
                         this.すべてのファイルの一覧.Add(new JkFileData {
                             jk番号 = jkIdInPath,
@@ -251,7 +257,6 @@ create table jkFile(
                 }
             }
             Console.WriteLine($"getJkFiles終了");
-            return result;
         }
         private void getFileDetails() {
             // 処理前に トータル個数をチェック
@@ -319,6 +324,9 @@ create table jkFile(
         private Dictionary<int, MainWindowModel.IniJkNames> jkNameList = new Dictionary<int, MainWindowModel.IniJkNames>();
         // このobservableCollectionにはgetterとsetter必須。無いと動かない
         public ObservableCollection<JkItem> gridViewObservableCollection { get; set; } = new ObservableCollection<JkItem>();
+        public CollectionViewSource gridViewViewSource { get; set; } = new CollectionViewSource();
+        public ObservableCollection<StationList> stationListObservableCollection { get; set; } = new ObservableCollection<StationList>();
+        public int filterStationJkNo = 0;
         public class JkItem : INotifyPropertyChanged {
             public event PropertyChangedEventHandler PropertyChanged;
             private void NotifyPropertyChanged([CallerMemberName] String propertyName = "") {
@@ -419,9 +427,133 @@ create table jkFile(
                 }
             }
         }
+        public class StationList : INotifyPropertyChanged {
+            public event PropertyChangedEventHandler PropertyChanged;
+            private void NotifyPropertyChanged([CallerMemberName] String propertyName = "") {
+                if (PropertyChanged != null) {
+                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                }
+            }
+            public string 局を選択するコンボボックスで表示するテキスト {
+                get {
+                    // サイズ部分を作る
+                    // 12354 files. 12345.00 kbyte
+                    var fileSizeStr = "";
+                    if (this._ファイル個数 != 0) {
+                        var sizeMb = this._ファイル合計容量 / 1024.0 /1024.0;
+                        fileSizeStr = $" {this._ファイル個数,4} files. {sizeMb,8:0.0} mbyte";
+                    }
+                    var stationName = "";
+                    if (this._局名 != "") {
+                        stationName = $"{this._局名}(jk{this._jkNo})";
+                    } else {
+                        stationName = $"jk{this._jkNo}";
+                    }
+                    return $"{stationName.PadRight(22 - (Encoding.GetEncoding("Shift_JIS").GetByteCount(stationName) - stationName.Length))} {fileSizeStr}";
+                }
+            }
+            private int _jkNo = 0;
+            public int jkNo {
+                get {
+                    return this._jkNo;
+                }
+                set {
+                    if (value == this._jkNo) {
+                        return;
+                    }
+                    this._jkNo = value;
+                    this.NotifyPropertyChanged();
+                    this.NotifyPropertyChanged(局を選択するコンボボックスで表示するテキスト);
+                }
+            }
+            private string _局名 = "";
+            public string 局名 {
+                get {
+                    return this._局名;
+                }
+                set {
+                    if (value == this._局名) {
+                        return;
+                    }
+                    this._局名 = value;
+                    this.NotifyPropertyChanged();
+                    this.NotifyPropertyChanged(局を選択するコンボボックスで表示するテキスト);
+                }
+            }
+            private long _ファイル個数 = 0;
+            public long ファイル個数 {
+                get {
+                    return this._ファイル個数;
+                }
+                set {
+                    if (value == this._ファイル個数) {
+                        return;
+                    }
+                    this._ファイル個数 = value;
+                    this.NotifyPropertyChanged();
+                    this.NotifyPropertyChanged(局を選択するコンボボックスで表示するテキスト);
+                }
+            }
+            private long _ファイル合計容量 = 0;
+            public long ファイル合計容量 {
+                get {
+                    return this._ファイル合計容量;
+                }
+                set {
+                    if (value == this._ファイル合計容量) {
+                        return;
+                    }
+                    this._ファイル合計容量 = value;
+                    this.NotifyPropertyChanged();
+                    this.NotifyPropertyChanged(局を選択するコンボボックスで表示するテキスト);
+                }
+            }
+        }
+        public MainWindowView() {
+            var view = CollectionViewSource.GetDefaultView(this.gridViewObservableCollection);
+            view.SortDescriptions.Add(new SortDescription("ファイル番号", ListSortDirection.Descending));
+            this.stationListObservableCollection.Add(new StationList {
+                jkNo = 0,
+                局名 = "全て"
+            });
+            this.gridViewViewSource.Source = this.gridViewObservableCollection;
+            this.gridViewViewSource.Filter += GridViewViewSource_Filter;
+        }
+        public void refreshStationSelection(int stationJkNo) {
+            this.filterStationJkNo = stationJkNo;
+            this.gridViewViewSource.View.Refresh();
+        }
+
+        private void GridViewViewSource_Filter(object sender, FilterEventArgs e) {
+            //throw new NotImplementedException();
+            if (e.Item == null) {
+                e.Accepted = true;
+                return;
+            }
+            if (this.filterStationJkNo == 0) {
+                e.Accepted = true;
+                return;
+            }
+            var e2 = e.Item as JkItem;
+            if (e2 == null) {
+                e.Accepted = true;
+                return;
+            }
+            e.Accepted = e2.jk番号 == this.filterStationJkNo;
+            return;
+        }
+
         public void setChannelList(IEnumerable<MainWindowModel.IniJkNames> a) {
             // 上のドロップダウンをセットする
             this.jkNameList = a.ToDictionary(data => { return data.jk番号; });
+            foreach (var data in a) {
+                this.stationListObservableCollection.Add(new StationList {
+                    jkNo = data.jk番号,
+                    局名 = data.局名,
+                    ファイル個数 = data.ファイル数,
+                    ファイル合計容量 = data.ファイル合計容量
+                });
+            }
         }
         public int getChannelJkId() {
             return 0;
