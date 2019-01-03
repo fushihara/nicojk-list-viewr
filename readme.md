@@ -2,6 +2,11 @@
 
 コメントファイルの調子がおかしい時、いちいちjkフォルダを覗いて数字のファイルを探すのが面倒なので。
 
+![](https://github.com/fushihara/nicojk-list-viewr/raw/master/docs/imgTemp-2019-01-03-17-20-35.png)
+
+![](https://github.com/fushihara/nicojk-list-viewr/raw/master/docs/imgTemp-2019-01-03-17-20-51.png)
+
+
 # 開発＆実行環境
 
 - Windows10 Pro 64bit
