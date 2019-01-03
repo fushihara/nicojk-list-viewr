@@ -49,6 +49,44 @@ namespace WpfApp1 {
             };
             this.model.init(this.Dispatcher);
         }
+        private void jkList_contextmenu_filepath(object sender, RoutedEventArgs e) {
+            var selectedItem = this.jkList.SelectedItem as WpfApp1.MainWindowView.JkItem;
+            if (selectedItem == null) { return; }
+            var fileFullPath = this.model.getJkFileFullPath(selectedItem.jk番号, selectedItem.ファイル番号);
+            Clipboard.SetDataObject(fileFullPath);
+            MessageBox.Show($"ファイルのフルパス\n{fileFullPath}\nをコピーしました。", "", MessageBoxButton.OK);
+        }
+        private void jkList_contextmenu_dirpath(object sender, RoutedEventArgs e) {
+            var selectedItem = this.jkList.SelectedItem as WpfApp1.MainWindowView.JkItem;
+            if (selectedItem == null) { return; }
+            var fileFullPath = this.model.getJkFileFullPath(selectedItem.jk番号, selectedItem.ファイル番号);
+            var dirPath = Path.GetDirectoryName(fileFullPath);
+            Clipboard.SetDataObject(fileFullPath);
+            MessageBox.Show($"ディレクトリのフルパス\n{dirPath}\nをコピーしました。", "", MessageBoxButton.OK);
+        }
+        private void jkList_contextmenu_notepad(object sender, RoutedEventArgs e) {
+            var selectedItem = this.jkList.SelectedItem as WpfApp1.MainWindowView.JkItem;
+            if (selectedItem == null) { return; }
+            this.model.openFileWithNotepad(selectedItem.jk番号, selectedItem.ファイル番号);
+        }
+        private void jkList_contextmenu_everything(object sender, RoutedEventArgs e) {
+            var selectedItem = this.jkList.SelectedItem as WpfApp1.MainWindowView.JkItem;
+            if (selectedItem == null) { return; }
+            // ( dc:>"2018/01/01T23:00:00.00" dc:<"2018/01/10T23:00:00.00" )
+            var from = selectedItem.開始時刻;
+            var to = selectedItem.終了時刻;
+            if (from == null) {
+                var timeFromDate = DateTimeOffset.FromUnixTimeSeconds(selectedItem.ファイル番号).LocalDateTime;
+                var fromStr = (timeFromDate - TimeSpan.FromMinutes(10)).ToString("yyyy/MM/dd'T'HH:mm:ss");
+                var toStr = (timeFromDate + TimeSpan.FromMinutes(10)).ToString("yyyy/MM/dd'T'HH:mm:ss");
+                Clipboard.SetDataObject($@"dc:>""{fromStr}"" dc:<""{toStr}"" *.ts");
+            } else {
+                var fromStr = (from.Value - TimeSpan.FromMinutes(10)).ToString("yyyy/MM/dd'T'HH:mm:ss");
+                var toStr = (to.Value + TimeSpan.FromMinutes(10)).ToString("yyyy/MM/dd'T'HH:mm:ss");
+                Clipboard.SetDataObject($@"dc:>""{fromStr}"" dc:<""{toStr}"" *.ts");
+            }
+            MessageBox.Show($"everything用の検索テキストをコピーしました。", "", MessageBoxButton.OK);
+        }
     }
     class MainWindowModel {
         public delegate void DataReloadHander(List<IniJkNames> jkDatas, List<JkFileData> loadData);
@@ -57,6 +95,7 @@ namespace WpfApp1 {
         public event OneDataUpdateHander onOneDataUpdate;
         private SQLiteConnection sqliteConnection;
         private string ディレクトリのパス { get; set; } = "";
+        private string notepadのexeのパス = "";
         private List<IniJkNames> jkの名前定義一覧 { get; set; } = new List<IniJkNames>();
         private List<JkFileData> すべてのファイルの一覧 { get; set; } = new List<JkFileData>();
         private Task getFileDetailsTask;
@@ -82,11 +121,34 @@ namespace WpfApp1 {
             this.getFileDetailsTask = new Task(getFileDetails);
             this.getFileDetailsTask.Start();
         }
+        public string getJkFileFullPath(int jk番号, long ファイル番号) {
+            foreach (var data in this.すべてのファイルの一覧) {
+                if (data.jk番号 == jk番号 && data.ファイル番号 == ファイル番号) {
+                    return data.ファイルのフルパス;
+                }
+            }
+            return null;
+        }
+        public void openFileWithNotepad(int jk番号, long ファイル番号) {
+            foreach (var data in this.すべてのファイルの一覧) {
+                if (data.jk番号 == jk番号 && data.ファイル番号 == ファイル番号) {
+                    var filePath = data.ファイルのフルパス;
+                    var programName = this.notepadのexeのパス;
+                    if (programName == "") {
+                        // 関連付けられたファイルで開く
+                        System.Diagnostics.Process.Start(filePath);
+                    } else {
+                        System.Diagnostics.Process.Start(programName, $@"""{filePath}""");
+                    }
+                }
+            }
+        }
         private void setupIniFile() {
             const string sqliteのファイル名 = "jkData.ini";
             if (System.IO.File.Exists(sqliteのファイル名) == false) {
                 System.IO.File.WriteAllText(sqliteのファイル名, $@"
 rootDirectory=./nicoJk/
+notepadExePath=notepad.exe
 jknames.1=NHK総合
 jknames.2=NHK教育
 jknames.4=日テレ
@@ -105,6 +167,8 @@ jknames.9=TOKYO MX
                 var jkNamesMatchR = jkNamesRegex.Match(section.KeyName);
                 if (section.KeyName == "rootDirectory") {
                     this.ディレクトリのパス = section.Value;
+                } else if (section.KeyName == "notepadExePath") {
+                    this.notepadのexeのパス = section.Value;
                 } else if (jkNamesMatchR.Success) {
                     var jkId = int.Parse(jkNamesMatchR.Groups[1].ToString());
                     var stationName = section.Value;
@@ -440,7 +504,7 @@ create table jkFile(
                     // 12354 files. 12345.00 kbyte
                     var fileSizeStr = "";
                     if (this._ファイル個数 != 0) {
-                        var sizeMb = this._ファイル合計容量 / 1024.0 /1024.0;
+                        var sizeMb = this._ファイル合計容量 / 1024.0 / 1024.0;
                         fileSizeStr = $" {this._ファイル個数,4} files. {sizeMb,8:0.0} mbyte";
                     }
                     var stationName = "";

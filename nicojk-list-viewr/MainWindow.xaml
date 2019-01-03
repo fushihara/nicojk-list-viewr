@@ -21,6 +21,14 @@
                 </StatusBarItem>
             </StatusBar>
             <DataGrid Name="jkList" IsReadOnly="True" SelectionMode="Single" ItemsSource="{Binding Path=gridViewViewSource.View}" VirtualizingStackPanel.VirtualizationMode="Recycling" VirtualizingStackPanel.IsVirtualizing="True" AutoGenerateColumns="False">
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="ファイルのフルパスをコピー" Click="jkList_contextmenu_filepath"></MenuItem>
+                        <MenuItem Header="フォルダのフルパスをコピー" Click="jkList_contextmenu_dirpath"></MenuItem>
+                        <MenuItem Header="ファイルをnotepadで開く" Click="jkList_contextmenu_notepad"></MenuItem>
+                        <MenuItem Header="Everything用のコピーテキスト" Click="jkList_contextmenu_everything"></MenuItem>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ファイル番号" Binding="{Binding Path=ファイル番号}" />
                     <DataGridTextColumn Header="ファイル時刻" Binding="{Binding Path=ファイルの日時,ConverterCulture=ja-JP,StringFormat={}{0:yyyy年MM月dd日(ddd)HH:mm:ss}}"/>
